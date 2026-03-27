@@ -1,5 +1,5 @@
 const userModel = require("../models/user.model.js");
-const foodPatnerModel = require("../models/foodPatner.model.js");
+const foodPartnerModel = require("../models/foodPartner.model.js");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
@@ -22,7 +22,7 @@ async function registerUser(req, res) {
     password: hashedPassword,
   });
 
-  const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRECT);
+  const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET);
 
   res.cookie("token", token);
 
@@ -84,10 +84,10 @@ function logoutUser(req, res) {
   });
 }
 
-async function registerFoodPatner(req, res) {
-  const { name, email, password } = req.body;
+async function registerFoodPartner(req, res) {
+  const { name, contactName, phone, email, password } = req.body;
 
-  const isAccountAlreadyExists = await foodPatnerModel.findOne({
+  const isAccountAlreadyExists = await foodPartnerModel.findOne({
     email,
   });
 
@@ -99,15 +99,17 @@ async function registerFoodPatner(req, res) {
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
-  const foodPatner = await foodPatnerModel.create({
+  const foodPartner = await foodPartnerModel.create({
     name,
     email,
     password: hashedPassword,
+    contactName,
+    phone
   });
 
   const token = jwt.sign(
     {
-      id: foodPatner._id,
+      id: foodPartner._id,
     },
     process.env.JWT_SECRET,
   );
@@ -117,24 +119,26 @@ async function registerFoodPatner(req, res) {
   res.status(201).json({
     message: "Food Patner Registered Successfully",
     foodPatner: {
-      _id: foodPatner._id,
-      email: foodPatner.email,
-      name: foodPatner.name,
+      _id: foodPartner._id,
+      email: foodPartner.email,
+      name: foodPartner.name,
+      contactName: foodPartner.contactName,
+      phone: foodPartner.phone
     },
   });
 }
 
-async function loginFoodPatner(req ,res) {
+async function loginFoodPartner(req ,res) {
 
    const { email, password } = req.body;
 
   console.log("BODY:", req.body);
 
-  const FoodPatnerUser = await foodPatnerModel.findOne({
+  const FoodPartnerUser = await foodPartnerModel.findOne({
     email,
   });
 
-  if (!FoodPatnerUser) {
+  if (!FoodPartnerUser) {
     res.status(400).json({
       message: "Invaild email or password",
     });
@@ -142,7 +146,7 @@ async function loginFoodPatner(req ,res) {
 
   const isPasswordValid = await bcrypt.compare(
     password,
-    FoodPatnerUser.password,
+    FoodPartnerUser.password,
   );
 
   if (!isPasswordValid) {
@@ -153,7 +157,7 @@ async function loginFoodPatner(req ,res) {
 
   const token = jwt.sign(
     {
-      id: FoodPatnerUser._id,
+      id: FoodPartnerUser._id,
     },
     process.env.JWT_SECRET,
   );
@@ -162,18 +166,18 @@ async function loginFoodPatner(req ,res) {
 
   res.status(200).json({
     message: "Login Successfully",
-    foodPatnerUser: {
-      id: FoodPatnerUser._id,
-      email: FoodPatnerUser.email,
-      name: FoodPatnerUser.name,
+    foodPartnerUser: {
+      id: FoodPartnerUser._id,
+      email: FoodPartnerUser.email,
+      name: FoodPartnerUser.name,
     },
   });
 }
 
-function logoutFoodPatner(req, res) {
+function logoutFoodPartner(req, res) {
   res.clearCookie("token");
   res.status(200).json({
-    message: "Food Patner Logged out",
+    message: "Food Partner Logged out",
   });
 }
 
@@ -181,7 +185,7 @@ module.exports = {
   registerUser,
   loginUser,
   logoutUser,
-  registerFoodPatner,
-  loginFoodPatner,
-  logoutFoodPatner,
+  registerFoodPartner,
+  loginFoodPartner,
+  logoutFoodPartner,
 };

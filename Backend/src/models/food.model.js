@@ -12,9 +12,9 @@ const foodSchema = new mongoose.Schema({
   description:{
     type:String
   },
-  foodPatner:{
+  foodPartner:{
     type:mongoose.Schema.Types.ObjectId,
-    ref: "foodPatner"
+    ref: "foodPartner"
   }
 })
 
