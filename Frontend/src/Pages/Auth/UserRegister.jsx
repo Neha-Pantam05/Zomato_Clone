@@ -26,7 +26,7 @@ const UserRegister = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-pink-500 via-red-500 to-orange-400 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-linear-to-r from-pink-500 via-red-500 to-orange-400 px-4">
 
       <div className="bg-white w-full max-w-sm p-8 rounded-2xl shadow-xl">
 
