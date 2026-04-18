@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
+import BottomNav from '../../Components/BottomNav'
+import { Heart, Bookmark, MessageCircle } from 'lucide-react';
 
 const Home = () => {
   const [foods, setFoods] = useState([]);
@@ -86,13 +88,6 @@ const Home = () => {
     };
   }, [foods]);
 
-  const handleVisitStore = (foodPartner) => {
-    // Implement navigation to store page or modal
-    console.log('Visit store for:', foodPartner);
-    // For now, just alert
-   
-  };
-
   if (loading) {
     return (
       <div className="h-screen flex items-center justify-center bg-black text-white">
@@ -105,32 +100,66 @@ const Home = () => {
   }
 
   return (
-    <div ref={containerRef} className="h-screen overflow-y-scroll snap-y snap-mandatory bg-black">
+    <div ref={containerRef} className="h-screen overflow-y-scroll snap-y snap-mandatory bg-black pb-28">
       {foods.map((item) => (
         <section key={item._id} className="reel relative h-screen snap-start" role="listitem">
           <video
             ref={setVideoRef(item._id)}
-            className="reel-video w-full h-full object-cover"
+            className="reel-video h-full w-full object-cover"
             src={item.video}
             muted
             playsInline
             loop
             preload="metadata"
-            autoPlay={false} // We'll control this manually
+            autoPlay={false}
           />
-          <div className="absolute bottom-0 left-0 p-4 text-white bg-none text-left max-w-xs">
-            <h2 className="text-2xl font-bold mb-2">{item.name}</h2>
-            <p className="text-sm mb-4 line-clamp-2">{item.description}</p>
-            
+
+<div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/20 to-transparent" />
+
+          <div className="absolute right-4 top-2/3 flex flex-col items-center gap-5 text-white">
             <button
-              onClick={() => handleVisitStore(item.foodPartner)}
-              className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-semibold"
+              type="button"
+              className="flex flex-col items-center gap-2 rounded-3xl bg-white/10 px-4 py-3 text-white transition hover:bg-white/15"
+              aria-label="Like"
             >
-              <Link className="reel-btn" to={"/foodPartner/" + item.foodPartner} aria-label="Visit store">Visit store</Link>
+              <span className="text-3xl"><Heart /></span>
+              <span className="text-sm">{item.likeCount ?? 23}</span>
             </button>
+            <button
+              type="button"
+              className="flex flex-col items-center gap-2 rounded-3xl bg-white/10 px-4 py-3 text-white transition hover:bg-white/15"
+              aria-label="Save"
+            >
+              <span className="text-3xl"><Bookmark /></span>
+              <span className="text-sm">{item.savedCount ?? 23}</span>
+            </button>
+            <button
+              type="button"
+              className="flex flex-col items-center gap-2 rounded-3xl bg-white/10 px-4 py-3 text-white transition hover:bg-white/15"
+              aria-label="Comments"
+            >
+              <span className="text-3xl"><MessageCircle /></span>
+              <span className="text-sm">{item.commentCount ?? 45}</span>
+            </button>
+          </div>
+
+          <div className="absolute bottom-6 left-4 right-4 text-white">
+            <div className="mb-4">
+              <h2 className="text-2xl font-bold leading-tight mb-3">{item.name}</h2>
+              <p className="text-sm text-white/70 line-clamp-3">{item.description}</p>
+            </div>
+
+            <Link
+              to={`/foodPartner/${item.foodPartner}`}
+              className="inline-flex items-center justify-center rounded-full bg-red-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-red-500/20 transition hover:bg-red-600"
+              aria-label="Visit store"
+            >
+              Visit store
+            </Link>
           </div>
         </section>
       ))}
+      <BottomNav />
     </div>
   );
 };

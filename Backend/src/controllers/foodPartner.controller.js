@@ -17,6 +17,7 @@ async function getFoodPartnerById(req,res){
   }
   res.status(200).json({
     message:"FoodPartner retrived Successfully",
+    
     foodPartner:{
       ...foodPartner.toObject(),foodItems:foodItemsByFoodPartner
     }

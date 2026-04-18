@@ -1,7 +1,7 @@
 const express = require("express");
 const foodController = require("../controllers/food.controller.js");
 const authMiddleware = require("../Middlewares/auth.middleware.js");
-const  multer  = require("multer");
+const multer = require("multer");
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -17,8 +17,17 @@ router.post(
 );
 
 // GET -> http://localhost:3000/api/food
-router.get("/",authMiddleware.authUserMiddleware,
-  foodController.getFoodItems)
+router.get("/",
+  authMiddleware.authUserMiddleware, foodController.getFoodItems);
 
+router.post(
+  "/like",
+  authMiddleware.authUserMiddleware,
+  foodController.likeFood,
+);
 
+router.post('/save',
+  authMiddleware.authUserMiddleware,
+  foodController.saveFood,
+)
 module.exports = router;
