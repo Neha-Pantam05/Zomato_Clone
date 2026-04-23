@@ -137,7 +137,7 @@ const Home = () => {
               playsInline
             />
 
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+            <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/20 to-transparent" />
 
             <div className="absolute right-4 top-[58%] flex flex-col gap-4 text-white">
 
