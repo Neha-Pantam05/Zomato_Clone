@@ -55,8 +55,8 @@ const Saved = () => {
                   <h2 className="text-xl font-semibold">{item.name}</h2>
                   <p className="text-sm text-white/70 line-clamp-2">{item.description}</p>
                   <div className="flex flex-wrap gap-3 text-xs text-white/70">
-                    <span className="rounded-full bg-white/5 px-3 py-2">Likes {item.likeCount ?? 23}</span>
-                    <span className="rounded-full bg-white/5 px-3 py-2">Saved {item.savedCount ?? 23}</span>
+                    <span className="rounded-full bg-white/5 px-3 py-2">Likes {item.likeCount ?? 0}</span>
+                    <span className="rounded-full bg-white/5 px-3 py-2">Saved {item.savedCount ?? 0}</span>
                   </div>
                 </div>
               </article>
@@ -64,7 +64,6 @@ const Saved = () => {
           </div>
         )}
       </main>
-
       <BottomNav />
     </div>
   )

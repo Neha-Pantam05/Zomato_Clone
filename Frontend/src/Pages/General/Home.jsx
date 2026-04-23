@@ -1,165 +1,201 @@
-import React, { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
-import { Link, useNavigate } from 'react-router-dom';
-import BottomNav from '../../Components/BottomNav'
-import { Heart, Bookmark, MessageCircle } from 'lucide-react';
+import React, { useState, useEffect, useRef } from "react";
+import axios from "axios";
+import { Link, useNavigate } from "react-router-dom";
+import BottomNav from "../../Components/BottomNav";
+import {
+  Heart,
+  Bookmark,
+  ExternalLink,
+} from "lucide-react";
 
 const Home = () => {
   const [foods, setFoods] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
-  const videoRefs = useRef(new Map());
+
+  const [likedItems, setLikedItems] = useState({});
+  const [savedItems, setSavedItems] = useState({});
+  const [sharedItems, setSharedItems] = useState({});
+
   const containerRef = useRef(null);
+  const videoRefs = useRef(new Map());
+
   const navigate = useNavigate();
 
   const setVideoRef = (id) => (el) => {
-    if (!el) { videoRefs.current.delete(id); return; }
-    videoRefs.current.set(id, el);
+    if (el) videoRefs.current.set(id, el);
+    else videoRefs.current.delete(id);
+  };
+
+  const toggleLike = (id) => {
+    setLikedItems((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
+  };
+
+  const toggleSave = (id) => {
+    setSavedItems((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
+  };
+
+  const toggleShare = (id) => {
+    setSharedItems((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
   };
 
   useEffect(() => {
     const fetchFoods = async () => {
       try {
-        const response = await axios.get('http://localhost:3000/api/food/', {
+        const response = await axios.get("http://localhost:3000/api/food/", {
           withCredentials: true,
         });
+
         setFoods(response.data.foodItems);
       } catch (error) {
         if (error.response?.status === 401) {
-          // User not authenticated, redirect to choose user page
-          navigate('/choose-user');
-          return;
+          navigate("/choose-user");
         }
-        console.error('Error fetching foods:', error);
       } finally {
         setLoading(false);
       }
     };
+
     fetchFoods();
   }, [navigate]);
 
-  // Handle video playback based on scroll position
   useEffect(() => {
     if (!containerRef.current || foods.length === 0) return;
 
     const container = containerRef.current;
-    let currentPlayingIndex = 0;
-
-    const playVideo = async (index) => {
-      const video = videoRefs.current.get(foods[index]?._id);
-      if (video) {
-        try {
-          await video.play();
-        } catch (error) {
-          console.log('Video play failed:', error);
-        }
-      }
-    };
-
-    const pauseVideo = (index) => {
-      const video = videoRefs.current.get(foods[index]?._id);
-      if (video) {
-        video.pause();
-      }
-    };
 
     const handleScroll = () => {
-      const scrollTop = container.scrollTop;
-      const windowHeight = window.innerHeight;
-      const newIndex = Math.round(scrollTop / windowHeight);
+      const reels = container.querySelectorAll(".reel");
 
-      if (newIndex !== currentPlayingIndex && newIndex >= 0 && newIndex < foods.length) {
-        pauseVideo(currentPlayingIndex);
-        currentPlayingIndex = newIndex;
-        setCurrentVideoIndex(newIndex);
-        playVideo(newIndex);
-      }
+      reels.forEach((reel, index) => {
+        const rect = reel.getBoundingClientRect();
+        const video = videoRefs.current.get(foods[index]?._id);
+
+        if (!video) return;
+
+        const visible =
+          rect.top >= -100 && rect.top <= window.innerHeight / 2;
+
+        if (visible) {
+          video.play().catch(() => {});
+        } else {
+          video.pause();
+        }
+      });
     };
 
-    // Play first video initially
-    playVideo(0);
+    handleScroll();
 
-    container.addEventListener('scroll', handleScroll);
+    container.addEventListener("scroll", handleScroll);
 
     return () => {
-      container.removeEventListener('scroll', handleScroll);
-      // Pause all videos on cleanup
-      foods.forEach((_, index) => pauseVideo(index));
+      container.removeEventListener("scroll", handleScroll);
     };
   }, [foods]);
 
   if (loading) {
     return (
       <div className="h-screen flex items-center justify-center bg-black text-white">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-          <p>Loading videos...</p>
-        </div>
+        Loading...
       </div>
     );
   }
 
   return (
-    <div ref={containerRef} className="h-screen overflow-y-scroll snap-y snap-mandatory bg-black pb-28">
-      {foods.map((item) => (
-        <section key={item._id} className="reel relative h-screen snap-start" role="listitem">
-          <video
-            ref={setVideoRef(item._id)}
-            className="reel-video h-full w-full object-cover"
-            src={item.video}
-            muted
-            playsInline
-            loop
-            preload="metadata"
-            autoPlay={false}
-          />
+    <div
+      ref={containerRef}
+      className="h-screen overflow-y-scroll snap-y snap-mandatory bg-black pb-24"
+    >
+      {foods.map((item) => {
+        const isLiked = likedItems[item._id];
+        const isSaved = savedItems[item._id];
+        const isShared = sharedItems[item._id];
 
-<div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/20 to-transparent" />
+        const likeCount = (item.likeCount ?? 0) + (isLiked ? 1 : 0);
+        const saveCount = (item.savedCount ?? 0) + (isSaved ? 1 : 0);
+        const shareCount = (item.shareCount ?? 0) + (isShared ? 1 : 0);
 
-          <div className="absolute right-4 top-2/3 flex flex-col items-center gap-5 text-white">
-            <button
-              type="button"
-              className="flex flex-col items-center gap-2 rounded-3xl bg-white/10 px-4 py-3 text-white transition hover:bg-white/15"
-              aria-label="Like"
-            >
-              <span className="text-3xl"><Heart /></span>
-              <span className="text-sm">{item.likeCount ?? 23}</span>
-            </button>
-            <button
-              type="button"
-              className="flex flex-col items-center gap-2 rounded-3xl bg-white/10 px-4 py-3 text-white transition hover:bg-white/15"
-              aria-label="Save"
-            >
-              <span className="text-3xl"><Bookmark /></span>
-              <span className="text-sm">{item.savedCount ?? 23}</span>
-            </button>
-            <button
-              type="button"
-              className="flex flex-col items-center gap-2 rounded-3xl bg-white/10 px-4 py-3 text-white transition hover:bg-white/15"
-              aria-label="Comments"
-            >
-              <span className="text-3xl"><MessageCircle /></span>
-              <span className="text-sm">{item.commentCount ?? 45}</span>
-            </button>
-          </div>
+        return (
+          <section
+            key={item._id}
+            className="reel relative h-screen snap-start"
+          >
+            <video
+              ref={setVideoRef(item._id)}
+              src={item.video}
+              className="h-full w-full object-cover"
+              muted
+              loop
+              playsInline
+            />
 
-          <div className="absolute bottom-6 left-4 right-4 text-white">
-            <div className="mb-4">
-              <h2 className="text-2xl font-bold leading-tight mb-3">{item.name}</h2>
-              <p className="text-sm text-white/70 line-clamp-3">{item.description}</p>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+
+            <div className="absolute right-4 top-[58%] flex flex-col gap-4 text-white">
+
+              <button
+                onClick={() => toggleLike(item._id)}
+                className="flex flex-col items-center rounded-2xl bg-white/10 p-3"
+              >
+                <Heart
+                  fill={isLiked ? "red" : "none"}
+                  className={isLiked ? "text-red-500" : "text-white"}
+                />
+                <span className="text-xs">{likeCount}</span>
+              </button>
+
+              <button
+                onClick={() => toggleSave(item._id)}
+                className="flex flex-col items-center rounded-2xl bg-white/10 p-3"
+              >
+                <Bookmark
+                  fill={isSaved ? "white" : "none"}
+                  className="text-white"
+                />
+                <span className="text-xs">{saveCount}</span>
+              </button>
+
+              <button
+                onClick={() => toggleShare(item._id)}
+                className="flex flex-col items-center rounded-2xl bg-white/10 p-3"
+              >
+                <ExternalLink
+                  className={isShared ? "text-blue-400" : "text-white"}
+                />
+                <span className="text-xs">{shareCount}</span>
+              </button>
+
             </div>
 
-            <Link
-              to={`/foodPartner/${item.foodPartner}`}
-              className="inline-flex items-center justify-center rounded-full bg-red-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-red-500/20 transition hover:bg-red-600"
-              aria-label="Visit store"
-            >
-              Visit store
-            </Link>
-          </div>
-        </section>
-      ))}
-      <BottomNav />
+            <div className="absolute bottom-20 left-4 text-white">
+              <h2 className="text-2xl font-bold">{item.name}</h2>
+
+              <p className="mt-1 w-[80%] text-sm text-white/80">
+                {item.description}
+              </p>
+
+              <Link
+                to={`/foodPartner/${item.foodPartner}`}
+                className="mt-3 inline-block rounded-full bg-red-500 px-5 py-3 text-sm font-semibold"
+              >
+                Visit Store
+              </Link>
+            </div>
+          </section>
+        );
+      })}
+
+      <div className="fixed bottom-0 left-0 right-0 z-50">
+        <BottomNav />
+      </div>
     </div>
   );
 };

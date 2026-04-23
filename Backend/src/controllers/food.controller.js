@@ -30,9 +30,17 @@ async function createFood(req, res) {
 
 async function getFoodItems(req, res) {
   const foodItems = await foodModel.find({});
+  const userLikes = await likeModel.find({ user: req.user._id }).select('food');
+  const likedFoodIds = userLikes.map(like => like.food.toString());
+
+  const foodItemsWithLikeStatus = foodItems.map(item => ({
+    ...item.toObject(),
+    isLiked: likedFoodIds.includes(item._id.toString())
+  }));
+
   res.status(200).json({
     message: "Food items retrieved successfully",
-    foodItems,
+    foodItems: foodItemsWithLikeStatus,
   });
 }
 
