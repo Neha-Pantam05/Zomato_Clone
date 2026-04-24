@@ -30,4 +30,15 @@ router.post('/save',
   authMiddleware.authUserMiddleware,
   foodController.saveFood,
 )
+
+router.get('/share/:foodId',
+  authMiddleware.authUserMiddleware,
+  foodController.shareFood,
+)
+
+router.get('/saved',
+  authMiddleware.authUserMiddleware,
+  foodController.getSavedFoods,
+)
+
 module.exports = router;

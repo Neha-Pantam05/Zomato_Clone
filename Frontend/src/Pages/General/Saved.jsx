@@ -1,9 +1,24 @@
-import React from 'react'
-import { Link } from 'react-router-dom'
+import React, { useState, useEffect } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import BottomNav from '../../Components/BottomNav'
 
 const Saved = () => {
-  const savedItems = []
+  const [savedItems, setSavedItems] = useState([])
+  const [loading, setLoading] = useState(true)
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    // Removed fetchSavedFoods functionality
+    setLoading(false);
+  }, [navigate]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        Loading...
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-black text-white pb-28">
@@ -38,29 +53,63 @@ const Saved = () => {
           </div>
         ) : (
           <div className="space-y-6">
-            {savedItems.map((item) => (
-              <article key={item._id} className="overflow-hidden rounded-4xl  border-white/10 bg-white/5 shadow-sm shadow-black/30">
-                <div className="relative h-64 bg-zinc-900">
-                  <video
-                    className="h-full w-full object-cover"
-                    src={item.video}
-                    muted
-                    loop
-                    playsInline
-                    preload="metadata"
-                  />
-                  <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/30 to-transparent" />
-                </div>
-                <div className="space-y-3 p-5">
-                  <h2 className="text-xl font-semibold">{item.name}</h2>
-                  <p className="text-sm text-white/70 line-clamp-2">{item.description}</p>
-                  <div className="flex flex-wrap gap-3 text-xs text-white/70">
-                    <span className="rounded-full bg-white/5 px-3 py-2">Likes {item.likeCount ?? 0}</span>
-                    <span className="rounded-full bg-white/5 px-3 py-2">Saved {item.savedCount ?? 0}</span>
+            {savedItems.map((item) => {
+              const isLiked = likedItems[item._id];
+              const isSaved = savedState[item._id];
+
+              return (
+                <article key={item._id} className="overflow-hidden rounded-4xl  border-white/10 bg-white/5 shadow-sm shadow-black/30">
+                  <div className="relative h-64 bg-zinc-900">
+                    <video
+                      className="h-full w-full object-cover"
+                      src={item.video}
+                      muted
+                      loop
+                      playsInline
+                      preload="metadata"
+                    />
+                    <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/30 to-transparent" />
                   </div>
-                </div>
-              </article>
-            ))}
+                  <div className="space-y-3 p-5">
+                    <h2 className="text-xl font-semibold">{item.name}</h2>
+                    <p className="text-sm text-white/70 line-clamp-2">{item.description}</p>
+                    <div className="flex items-center justify-between">
+                      <div className="flex gap-4">
+                        <button
+                          onClick={() => toggleLike(item._id)}
+                          className="flex items-center gap-2 rounded-full bg-white/10 px-3 py-2 text-sm transition hover:bg-white/15"
+                        >
+                          <Heart
+                            fill={isLiked ? "red" : "none"}
+                            className={isLiked ? "text-red-500" : "text-white"}
+                            size={16}
+                          />
+                        </button>
+                        <button
+                          onClick={() => toggleSave(item._id)}
+                          className="flex items-center gap-2 rounded-full bg-white/10 px-3 py-2 text-sm transition hover:bg-white/15"
+                        >
+                          <Bookmark
+                            fill={isSaved ? "white" : "none"}
+                            className="text-white"
+                            size={16}
+                          />
+                        </button>
+                        <button
+                          onClick={() => toggleShare(item._id)}
+                          className="flex items-center gap-2 rounded-full bg-white/10 px-3 py-2 text-sm transition hover:bg-white/15"
+                        >
+                          <ExternalLink
+                            className="text-white"
+                            size={16}
+                          />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </article>
+              );
+            })}
           </div>
         )}
       </main>

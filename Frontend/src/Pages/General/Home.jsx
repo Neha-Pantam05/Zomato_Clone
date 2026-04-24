@@ -26,25 +26,56 @@ const Home = () => {
     else videoRefs.current.delete(id);
   };
 
-  const toggleLike = (id) => {
-    setLikedItems((prev) => ({
-      ...prev,
-      [id]: !prev[id],
-    }));
+  const toggleLike = async (id) => {
+    try {
+      await axios.post("http://localhost:3000/api/food/like", { foodId: id }, {
+        withCredentials: true,
+      });
+      setLikedItems((prev) => ({
+        ...prev,
+        [id]: !prev[id],
+      }));
+    } catch (error) {
+      console.error("Error toggling like:", error);
+    }
   };
 
-  const toggleSave = (id) => {
-    setSavedItems((prev) => ({
-      ...prev,
-      [id]: !prev[id],
-    }));
+  const toggleSave = async (id) => {
+    try {
+      await axios.post("http://localhost:3000/api/food/save", { foodId: id }, {
+        withCredentials: true,
+      });
+      setSavedItems((prev) => ({
+        ...prev,
+        [id]: !prev[id],
+      }));
+    } catch (error) {
+      console.error("Error toggling save:", error);
+    }
   };
 
-  const toggleShare = (id) => {
-    setSharedItems((prev) => ({
-      ...prev,
-      [id]: !prev[id],
-    }));
+  const toggleShare = async (id) => {
+    try {
+      const response = await axios.get(`http://localhost:3000/api/food/share/${id}`, {
+        withCredentials: true,
+      });
+      const shareData = response.data.shareData;
+      
+      // Use Web Share API if available
+      if (navigator.share) {
+        await navigator.share({
+          title: shareData.title,
+          text: shareData.description,
+          url: shareData.url,
+        });
+      } else {
+        // Fallback: copy URL to clipboard
+        await navigator.clipboard.writeText(shareData.url);
+        alert("Share link copied to clipboard!");
+      }
+    } catch (error) {
+      console.error("Error sharing:", error);
+    }
   };
 
   useEffect(() => {
@@ -55,6 +86,16 @@ const Home = () => {
         });
 
         setFoods(response.data.foodItems);
+
+        // Set initial liked and saved states
+        const liked = {};
+        const saved = {};
+        response.data.foodItems.forEach(item => {
+          liked[item._id] = item.isLiked;
+          saved[item._id] = item.isSaved;
+        });
+        setLikedItems(liked);
+        setSavedItems(saved);
       } catch (error) {
         if (error.response?.status === 401) {
           navigate("/choose-user");
